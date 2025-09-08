@@ -1,0 +1,123 @@
+CREATE DATABASE IF NOT EXISTS myflights;
+USE myflights;
+
+CREATE TABLE flights (
+    YEAR INT,
+    MONTH INT,
+    DAY INT,
+    DAY_OF_WEEK INT,
+    AIRLINE VARCHAR(10),
+    FLIGHT_NUMBER INT,
+    TAIL_NUMBER VARCHAR(20),
+    ORIGIN_AIRPORT VARCHAR(10),
+    DESTINATION_AIRPORT VARCHAR(10),
+    SCHEDULED_DEPARTURE INT,
+    DEPARTURE_TIME INT,
+    DEPARTURE_DELAY INT,
+    TAXI_OUT INT,
+    WHEELS_OFF INT,
+    SCHEDULED_TIME INT,
+    ELAPSED_TIME INT,
+    AIR_TIME INT,
+    DISTANCE INT,
+    WHEELS_ON INT,
+    TAXI_IN INT,
+    SCHEDULED_ARRIVAL INT,
+    ARRIVAL_TIME INT,
+    ARRIVAL_DELAY INT,
+    DIVERTED TINYINT(1),
+    CANCELLED TINYINT(1),
+    CANCELLATION_REASON VARCHAR(5),
+    AIR_SYSTEM_DELAY INT,
+    SECURITY_DELAY INT,
+    AIRLINE_DELAY INT,
+    LATE_AIRCRAFT_DELAY INT,
+    WEATHER_DELAY INT
+);
+
+CREATE TABLE airline (
+    IATA_CODE VARCHAR(10),
+    AIRLINE VARCHAR(100)
+);
+
+
+CREATE TABLE airport (
+    IATA_CODE VARCHAR(10),
+    AIRPORT VARCHAR(100),
+    CITY VARCHAR(100),
+    STATE VARCHAR(10),
+    COUNTRY VARCHAR(50),
+    LATITUDE DOUBLE,
+    LONGITUDE DOUBLE
+);
+
+SHOW TABLES;
+
+SELECT COUNT(*) AS total_rows_flights FROM flights;
+SELECT COUNT(*) AS total_rows_airline FROM airline;
+SELECT COUNT(*) AS total_rows_airport FROM airport;
+
+DESCRIBE flights;
+DESCRIBE airline;
+DESCRIBE airport;
+
+-- Daily Number of Flights
+SELECT 
+    f.DATE, 
+    COUNT(*) AS total_flights
+FROM flights f
+GROUP BY f.DATE
+ORDER BY f.DATE;
+
+--  Flights With Departure Delay Greater Than 60 Minutes
+SELECT 
+    f.FLIGHT_NUMBER,
+    f.AIRLINE,
+    f.DEPARTURE_DELAY
+FROM flights f
+WHERE f.DEPARTURE_DELAY > 60
+ORDER BY f.DEPARTURE_DELAY DESC;
+
+-- Flights Arriving Earlier Than Scheduled
+SELECT 
+    FLIGHT_NUMBER, 
+    ARRIVAL_DELAY
+FROM flights
+WHERE ARRIVAL_DELAY < 0
+ORDER BY ARRIVAL_DELAY ASC
+LIMIT 10;
+
+-- Top 10 Airlines by Total Number of Flights
+SELECT a.AIRLINE, COUNT(*) AS total_flights
+FROM flights f
+JOIN airline a ON f.AIRLINE = a.IATA_CODE
+GROUP BY a.AIRLINE
+ORDER BY total_flights DESC
+LIMIT 10;
+
+-- Top 10 Airports with Most Departures
+SELECT ap.AIRPORT, COUNT(*) AS departures
+FROM flights f
+JOIN airport ap ON f.ORIGIN_AIRPORT = ap.IATA_CODE
+GROUP BY ap.AIRPORT
+ORDER BY departures DESC
+LIMIT 10;
+
+-- Top 10 Longest Flights (By Distance)
+SELECT al.AIRLINE, f.ORIGIN_AIRPORT, f.DESTINATION_AIRPORT, f.DISTANCE
+FROM flights f
+JOIN airline al ON f.AIRLINE = al.IATA_CODE
+ORDER BY f.DISTANCE DESC
+LIMIT 10;
+
+-- Top 10 Airlines with Most Cancelled Flights
+SELECT 
+    a.AIRLINE, 
+    COUNT(*) AS cancelled_flights
+FROM flights f
+JOIN airline a ON f.AIRLINE = a.IATA_CODE
+WHERE f.CANCELLED = 1
+GROUP BY a.AIRLINE
+ORDER BY cancelled_flights DESC
+LIMIT 10;
+
